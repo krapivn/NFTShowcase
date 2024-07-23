@@ -1,0 +1,53 @@
+# NFTShowcase.py
+
+from web3 import Web3
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import requests
+from typing import Dict, Any, List
+
+class NFTShowcase:
+    def __init__(self, provider_url: str, api_url: str):
+        self.web3 = Web3(Web3.HTTPProvider(provider_url))
+        self.api_url = api_url
+        self.data = pd.DataFrame()
+
+    def fetch_nft_metadata(self, contract_address: str, token_id: int) -> Dict[str, Any]:
+        """
+        Fetch metadata for a specific NFT using its contract address and token ID.
+        """
+        response = requests.get(f"{self.api_url}/nft/{contract_address}/{token_id}")
+        if response.status_code == 200:
+            return response.json()
+        else:
+            response.raise_for_status()
+
+    def fetch_collection_metadata(self, contract_address: str, token_ids: List[int]):
+        """
+        Fetch metadata for a collection of NFTs.
+        """
+        all_metadata = []
+        for token_id in token_ids:
+            metadata = self.fetch_nft_metadata(contract_address, token_id)
+            all_metadata.append(metadata)
+        
+        self.data = pd.DataFrame(all_metadata)
+
+    def display_collection(self):
+        """
+        Display the NFT collection with metadata.
+        """
+        if self.data.empty:
+            raise ValueError("No data available for display.")
+        
+        for _, nft in self.data.iterrows():
+            print(f"Token ID: {nft['token_id']}")
+            print(f"Name: {nft['name']}")
+            print(f"Description: {nft['description']}")
+            print(f"Image URL: {nft['image_url']}")
+            print("------")
+
+    def analyze_ownership_statistics(self):
+        """
+        Analy
